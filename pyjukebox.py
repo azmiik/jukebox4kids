@@ -12,7 +12,7 @@ import re
 class Jukebox4Kids:
 
     def __init__(self):
-        self.playlist_dir = "/media/sdcard/playlists"
+        self.playlist_dir = "/home/pi/playlist"
         self.track_count = 0
         self.current_track = 1
         self.play_status = 0
@@ -24,6 +24,8 @@ class Jukebox4Kids:
         self.go_standby_mode_time_out = 7200
         #self.power_off_amp_time_out = 120
         self.power_off_amp_time_out = 30
+
+        os.system("mpc volume 20")
 
 
     def get_track_count(self):
@@ -192,7 +194,7 @@ class Jukebox4Kids:
     def run(self):
         print "connect to serial ..."
         #ser = serial.Serial('/dev/pts/4', 115200, timeout=0)
-        self.ser = serial.Serial('/dev/ttyAMA0', 115200, timeout=0)
+        self.ser = serial.Serial('/dev/ttyS0', 9700, timeout=0)
         print("connected")
         # send heart beat
         self.ser.write('/H:foo\r\n')
@@ -211,24 +213,26 @@ class Jukebox4Kids:
                 if len(buf) > 0:
                     for d in buf:
                         #print ord(d)
-                        if ord(d) == 13 or ord(d) == 10:
+                        #if ord(d) == 2:
+                        #    print "start detected"
+                        if ord(d) == 3:
                             parse_data = True
-                        else:
+                            #print "stop char passed"
+                        if not ord(d) == 2 and not ord(d) == 3:
                             data.append(d)
                 if parse_data:
                     parse_data = False
                     #print data
-                    if not data[0] == '/':
-                        # error
-                        print "protocol error, message: %s" % data
-
-                    if data[1] == 'R' and len(data) > 6:
+                    if len(data) == 12:
                         # rfid id
-                        rfid = string.join(data[3:], "")
+                        rfid = string.join(data[0:], "")
                         print "receiving rfid: %s" % rfid
-                        if not rfid == current_rfid:
+                        if rfid == current_rfid:
+                            print "card already detected"
+                        else:
                             current_rfid = rfid
                             self.load_playlist(rfid)
+
                     if data[1] == 'S' and len(data) > 3:
                         button_index = data[3]
                         print "button %s pressed" % button_index
@@ -251,9 +255,9 @@ class Jukebox4Kids:
                     self.update_display()
 
                 # check activity every 5 seconds
-                if (current_ms - self.last_activity_check_ms) > 5:
-                    self.last_activity_check_ms = current_ms
-                    self.check_activity()
+                #if (current_ms - self.last_activity_check_ms) > 5:
+                #    self.last_activity_check_ms = current_ms
+                #    self.check_activity()
 
             except Exception as ex:
                 print 'Error: an error occurred during execution: %s' % (ex)

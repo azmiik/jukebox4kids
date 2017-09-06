@@ -4,10 +4,10 @@ import time
 from os.path import expanduser
 
 
-music_dir = "/data/temp/kinder/music"
-playlist_dir = "/data/temp/kinder/playlists"
+music_dir = "/home/pi/music"
+playlist_dir = "/home/pi/playlist"
 rfid_map_file = "/home/pi/pyjukebox/rfidmap.properties"
-temp_dir = "/data/temp/kinder"
+temp_dir = "/home/pi/temp"
 
 
 def save_playlist(playlist, barcodeid):
